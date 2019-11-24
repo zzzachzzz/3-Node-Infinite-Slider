@@ -15,9 +15,9 @@ const app = (function() {
   // 3 for prev, current, next, with 2 spaces between those elements (slider element is a flexbox set with `space-between`)
   const totalSliderWidth = slideWidth * 3 + slideSpacing * 2;
   (function() {
-    this.style.width = `${totalSliderWidth}px`;
-    updateSliderOffset(slideWidth + slideSpacing, this);  // Show .current
-    this.style.transition = `all ${sliderTransitionDuration}s`;
+    // this.style.width = `${totalSliderWidth}px`;
+    // updateSliderOffset(slideWidth + slideSpacing, this);  // Show .current
+    // this.style.transition = `all ${sliderTransitionDuration}s`;
   }).call(document.querySelector('.slider'));
   // Initial render
   document.querySelector('.prev > img').src = sliderItems[prev];
