@@ -9,18 +9,19 @@ const app = (function() {
 
   let prev = sliderItems.length-1;
   let next = 1;
-  const sliderTransitionDuration = 0.3;
+  const sliderTransitionDuration = 0.4;
 
   const calcTotalSliderWidth = () => Number(window.getComputedStyle(document.querySelector('.slider')).width.match(/\d+/)[0]);
   const calcSlideWidth = (totalSliderWidth) => totalSliderWidth / 3;
   let totalSliderWidth = calcTotalSliderWidth();
   let slideWidth = calcSlideWidth(totalSliderWidth);
 
+  // Initial render
   (function() {
     updateSliderOffset('current', this);  // Show .current
+    setTimeout(() => this.classList.remove('no-transition'), 30);
     this.style.transition = `all ${sliderTransitionDuration}s`;
   }).call(document.querySelector('.slider'));
-  // Initial render
   document.querySelector('.prev > img').src = sliderItems[prev];
   document.querySelector('.prev > img').src = sliderItems[prev];
   document.querySelector('.current > img').src = sliderItems[0];
@@ -92,7 +93,7 @@ const app = (function() {
       setTimeout(() => {
         document.querySelector('.slider').classList.remove('no-transition');
         onClickPrevNextRunning = false;
-      }, 50);
+      }, 30);
     }, sliderTransitionDuration * 1000);  // Convert from seconds to milliseconds
   }
 
@@ -120,11 +121,15 @@ const app = (function() {
     el_.style.transform = `translateX(-${offset}px)`;
   }
 
+  /**
+   * Update the slider offset upon resizing the window. Deactivates transitions during this.
+   * @return {undefined}
+   */
   window.onresize = () => {
     (function() {
       this.classList.add('no-transition');
       updateSliderOffset('current', this);
-      setTimeout(() => this.classList.remove('no-transition'), 50);
+      setTimeout(() => this.classList.remove('no-transition'), 30);
     }).call(document.querySelector('.slider'));
   };
 
