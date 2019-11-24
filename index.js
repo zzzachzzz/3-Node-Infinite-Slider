@@ -9,15 +9,16 @@ const app = (function() {
 
   let prev = sliderItems.length-1;
   let next = 1;
-  const slideWidth = 204;
-  const slideSpacing = 8;
   const sliderTransitionDuration = 0.3;
-  // 3 for prev, current, next, with 2 spaces between those elements (slider element is a flexbox set with `space-between`)
-  const totalSliderWidth = slideWidth * 3 + slideSpacing * 2;
+
+  const calcTotalSliderWidth = () => Number(window.getComputedStyle(document.querySelector('.slider')).width.match(/\d+/)[0]);
+  const calcSlideWidth = (totalSliderWidth) => totalSliderWidth / 3;
+  let totalSliderWidth = calcTotalSliderWidth();
+  let slideWidth = calcSlideWidth(totalSliderWidth);
+
   (function() {
-    // this.style.width = `${totalSliderWidth}px`;
-    // updateSliderOffset(slideWidth + slideSpacing, this);  // Show .current
-    // this.style.transition = `all ${sliderTransitionDuration}s`;
+    updateSliderOffset('current', this);  // Show .current
+    this.style.transition = `all ${sliderTransitionDuration}s`;
   }).call(document.querySelector('.slider'));
   // Initial render
   document.querySelector('.prev > img').src = sliderItems[prev];
@@ -54,15 +55,15 @@ const app = (function() {
     if (onClickPrevNextRunning) return;
     onClickPrevNextRunning = true;
     // Perform transform on slider
-    updateSliderOffset(goToPrev ? 0 : totalSliderWidth - slideWidth);
+    updateSliderOffset(goToPrev ? 'prev' : 'next');
 
     setTimeout(() => {
       // Update nodes adjacent to current
       (function() {
-        this.classList.add('notransition');
+        this.classList.add('no-transition');
         const nodeToMove = this.querySelector(goToPrev ? '.next' : '.prev');
         goToPrev ? this.prepend(nodeToMove) : this.append(nodeToMove);
-        updateSliderOffset(slideWidth + slideSpacing, this);  // Show .current
+        updateSliderOffset('current', this);  // Show .current
         [prev, next] = goToPrev ? calcWrappingIndices(decrement = true) : calcWrappingIndices();
         // Update item for recycled node
         nodeToMove.querySelector('img').src = sliderItems[goToPrev ? prev : next];
@@ -89,7 +90,7 @@ const app = (function() {
         e.setAttribute('aria-hidden', newClass === 'current' ? 'false' : 'true');
       });
       setTimeout(() => {
-        document.querySelector('.slider').classList.remove('notransition');
+        document.querySelector('.slider').classList.remove('no-transition');
         onClickPrevNextRunning = false;
       }, 50);
     }, sliderTransitionDuration * 1000);  // Convert from seconds to milliseconds
@@ -100,10 +101,32 @@ const app = (function() {
    * @param {Element=} el - the element for `.slider`, otherwise it will be selected
    * @return {undefined}
    */
-  function updateSliderOffset(offset, el = null) {
+  function updateSliderOffset(target, el = null) {
+    totalSliderWidth = calcTotalSliderWidth();
+    slideWidth = calcSlideWidth(totalSliderWidth);
+    let offset;
+    switch (target) {
+      case 'prev':
+        offset = 0;
+        break
+      case 'current':
+        offset = slideWidth;
+        break
+      case 'next':
+        offset = totalSliderWidth - slideWidth;
+        break
+    }
     const el_ = el || document.querySelector('.slider');
     el_.style.transform = `translateX(-${offset}px)`;
   }
+
+  window.onresize = () => {
+    (function() {
+      this.classList.add('no-transition');
+      updateSliderOffset('current', this);
+      setTimeout(() => this.classList.remove('no-transition'), 50);
+    }).call(document.querySelector('.slider'));
+  };
 
   return {
     onClickPrevNext: onClickPrevNext
