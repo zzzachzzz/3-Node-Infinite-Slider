@@ -11,23 +11,23 @@ const app = (function() {
   let next = 1;
   const sliderTransitionDuration = 0.4;
 
-  const calcTotalSliderWidth = () => Number(window.getComputedStyle(document.querySelector('.slider')).width.match(/\d+/)[0]);
+  let sliderEl = document.querySelector('.slider');
+  let prevEl = document.querySelector('.prev');
+  let currentEl = document.querySelector('.current');
+  let nextEl = document.querySelector('.next');
+
+  const calcTotalSliderWidth = () => Number(window.getComputedStyle(sliderEl).width.match(/\d+/)[0]);
   const calcSlideWidth = (totalSliderWidth) => totalSliderWidth / 3;
   let totalSliderWidth = calcTotalSliderWidth();
   let slideWidth = calcSlideWidth(totalSliderWidth);
 
   // Initial render
-  (function() {
-    updateSliderOffset('current', this);  // Show .current
-    setTimeout(() => this.classList.remove('no-transition'), 30);
-    this.style.transition = `all ${sliderTransitionDuration}s`;
-  }).call(document.querySelector('.slider'));
-  document.querySelector('.prev > img').src = sliderItems[prev];
-  document.querySelector('.prev > img').src = sliderItems[prev];
-  document.querySelector('.current > img').src = sliderItems[0];
-  document.querySelector('.current > img').src = sliderItems[0];
-  document.querySelector('.next > img').src = sliderItems[next];
-  document.querySelector('.next > img').src = sliderItems[next];
+  updateSliderOffset('current', sliderEl);  // Show .current
+  setTimeout(() => sliderEl.classList.remove('no-transition'), 30);
+  sliderEl.style.transition = `all ${sliderTransitionDuration}s`;
+  prevEl.querySelector('img').src = sliderItems[prev];
+  currentEl.querySelector('img').src = sliderItems[0];
+  nextEl.querySelector('img').src = sliderItems[next];
 
   /**
    * Updates `prev` and `next` in the outer scope with the wrapping indices for `sliderItems`
@@ -60,18 +60,21 @@ const app = (function() {
 
     setTimeout(() => {
       // Update nodes adjacent to current
-      (function() {
-        this.classList.add('no-transition');
-        const nodeToMove = this.querySelector(goToPrev ? '.next' : '.prev');
-        goToPrev ? this.prepend(nodeToMove) : this.append(nodeToMove);
-        updateSliderOffset('current', this);  // Show .current
-        [prev, next] = goToPrev ? calcWrappingIndices(decrement = true) : calcWrappingIndices();
-        // Update item for recycled node
-        nodeToMove.querySelector('img').src = sliderItems[goToPrev ? prev : next];
-      }).call(document.querySelector('.slider'));
+      sliderEl.classList.add('no-transition');
+      const nodeToMove = goToPrev ? nextEl : prevEl;
+      if (goToPrev) {
+        sliderEl.prepend(nodeToMove);
+        [currentEl, nextEl, prevEl] = [prevEl, currentEl, nextEl];
+      } else {
+        sliderEl.append(nodeToMove);
+        [nextEl, prevEl, currentEl] = [prevEl, currentEl, nextEl];
+      }
+      updateSliderOffset('current');  // Show .current
+      [prev, next] = goToPrev ? calcWrappingIndices(decrement = true) : calcWrappingIndices();
+      // Update item for recycled node
+      nodeToMove.querySelector('img').src = sliderItems[goToPrev ? prev : next];
 
-      [document.querySelector('.prev'), document.querySelector('.current'), document.querySelector('.next')]
-      .forEach((e, i) => {
+      [prevEl, currentEl, nextEl].forEach((e, i) => {
         let oldClass, newClass;
         switch (i) {
           case 0:
@@ -91,7 +94,7 @@ const app = (function() {
         e.setAttribute('aria-hidden', newClass === 'current' ? 'false' : 'true');
       });
       setTimeout(() => {
-        document.querySelector('.slider').classList.remove('no-transition');
+        sliderEl.classList.remove('no-transition');
         onClickPrevNextRunning = false;
       }, 30);
     }, sliderTransitionDuration * 1000);  // Convert from seconds to milliseconds
@@ -102,7 +105,7 @@ const app = (function() {
    * @param {Element=} el - the element for `.slider`, otherwise it will be selected
    * @return {undefined}
    */
-  function updateSliderOffset(target, el = null) {
+  function updateSliderOffset(target) {
     totalSliderWidth = calcTotalSliderWidth();
     slideWidth = calcSlideWidth(totalSliderWidth);
     let offset;
@@ -117,8 +120,7 @@ const app = (function() {
         offset = totalSliderWidth - slideWidth;
         break
     }
-    const el_ = el || document.querySelector('.slider');
-    el_.style.transform = `translateX(-${offset}px)`;
+    sliderEl.style.transform = `translateX(-${offset}px)`;
   }
 
   /**
@@ -126,11 +128,9 @@ const app = (function() {
    * @return {undefined}
    */
   window.onresize = () => {
-    (function() {
-      this.classList.add('no-transition');
-      updateSliderOffset('current', this);
-      setTimeout(() => this.classList.remove('no-transition'), 30);
-    }).call(document.querySelector('.slider'));
+    sliderEl.classList.add('no-transition');
+    updateSliderOffset('current', sliderEl);
+    setTimeout(() => sliderEl.classList.remove('no-transition'), 30);
   };
 
   return {
