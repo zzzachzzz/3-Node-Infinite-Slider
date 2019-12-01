@@ -75,19 +75,19 @@ const app = (function() {
       nodeToMove.querySelector('img').src = sliderItems[goToPrev ? prev : next];
 
       [prevEl, currentEl, nextEl].forEach((e, i) => {
-        let oldClass, newClass;
+        let newClass, oldClass;
         switch (i) {
           case 0:
-            oldClass = 'prev';
-            newClass = goToPrev ? 'current' : 'next';
+            newClass = 'prev';
+            oldClass = goToPrev ? 'next' : 'current';
             break;
           case 1:
-            oldClass = 'current';
-            newClass = goToPrev ? 'next' : 'prev';
+            newClass = 'current';
+            oldClass = goToPrev ? 'prev' : 'next';
             break;
           case 2:
-            oldClass = 'next';
-            newClass = goToPrev ? 'prev' : 'current';
+            newClass = 'next';
+            oldClass = goToPrev ? 'current' : 'prev';
             break;
         }
         e.className = e.className.replace(oldClass, newClass);
